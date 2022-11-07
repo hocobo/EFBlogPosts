@@ -2,6 +2,7 @@
 using System;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
+using Castle.Core.Internal;
 using EFBlogPosts.Models;
 
 namespace EFBlogPosts
@@ -42,7 +43,7 @@ namespace EFBlogPosts
                             ListPosts(selection);
                         }
                         catch (FormatException){
-                            Console.WriteLine("Invalid Input");
+                            Console.WriteLine("\nInvalid Input");
                         }
                         Menu(); 
                         break;
@@ -56,7 +57,7 @@ namespace EFBlogPosts
                         }
                         catch (FormatException)
                         {
-                            Console.WriteLine("Invalid Input");
+                            Console.WriteLine("\nInvalid Input");
                         }
                         Menu();
                         break;
@@ -71,7 +72,12 @@ namespace EFBlogPosts
         {
             using (var db = new BlogContext())
             {
-                System.Console.WriteLine("Here is the list of blogs");
+                var count = 0;
+                foreach(var b in db.Blogs)
+                {
+                    count++;
+                }
+                System.Console.WriteLine($"{count} Blogs returned");
                 foreach (var b in db.Blogs)
                 {
                     System.Console.WriteLine($"Blog: {b.BlogId}: {b.Name}");
@@ -82,30 +88,40 @@ namespace EFBlogPosts
         {
             System.Console.WriteLine("Enter your Blog name");
             var blogname = Console.ReadLine();
-
-            // // create new blog
-            var blog = new Blog();
-            blog.Name = blogname;
-
-            // // save blog object to database
-            using (var db = new BlogContext())
+            if (String.IsNullOrEmpty(blogname))
+                Console.WriteLine("\nInvalid Input");
+            else
             {
-                db.Blogs.Add(blog);
-                db.SaveChanges();
-            }
+                var blog = new Blog();
+                blog.Name = blogname;
+
+                // // save blog object to database
+                using (var db = new BlogContext())
+                {
+                    db.Blogs.Add(blog);
+                    db.SaveChanges();
+                }
+            }            
         }
         public static void ListPosts(int selection)
         {
             using (var db = new BlogContext())
             {
-                var blog = db.Blogs.Where(x => x.BlogId == selection).FirstOrDefault();
-                // var blogsList = blog.ToList(); // convert to List from IQueryable
-
-                System.Console.WriteLine($"Posts for Blog {blog.Name}");
-
-                foreach (var post in blog.Posts)
+                try 
                 {
-                    System.Console.WriteLine($"\tPost {post.PostId}\n{post.Title}\n{post.Content}");
+                    var blog = db.Blogs.Where(x => x.BlogId == selection).FirstOrDefault();
+
+
+                    System.Console.WriteLine($"Posts for Blog {blog.Name}");
+
+                    foreach (var post in blog.Posts)
+                    {
+                        System.Console.WriteLine($"\tPost {post.PostId}\n{post.Title}\n{post.Content}");
+                    }
+                }
+                catch (NullReferenceException)
+                {
+                    Console.WriteLine("\nBlog does not exist");
                 }
             }
         }
@@ -116,17 +132,23 @@ namespace EFBlogPosts
 
                 System.Console.WriteLine("Enter your post title");
                 var postTitle = Console.ReadLine();
-                System.Console.WriteLine("Enter your post content");
-                var postContent = Console.ReadLine();
+                if(String.IsNullOrEmpty(postTitle))
+                    Console.WriteLine("\nInvalid Input");
+                else
+                {
+                    System.Console.WriteLine("Enter your post content");
+                    var postContent = Console.ReadLine();
 
-                var post = new Post();
-                post.Title = postTitle;
-                post.Content = postContent;
-                post.BlogId = blog.BlogId;
+                    var post = new Post();
+                    post.Title = postTitle;
+                    post.Content = postContent;
+                    post.BlogId = blog.BlogId;
 
-            
-                db.Posts.Add(post);
-                db.SaveChanges();
+
+                    db.Posts.Add(post);
+                    db.SaveChanges();
+                }
+                
             }
         }
     }
