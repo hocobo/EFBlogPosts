@@ -127,29 +127,37 @@ namespace EFBlogPosts
         }
         public static void AddPost(int selection)
         {
-            using (var db = new BlogContext())
-            {   var blog = db.Blogs.Where(x => x.BlogId == selection).FirstOrDefault();
-
-                System.Console.WriteLine("Enter your post title");
-                var postTitle = Console.ReadLine();
-                if(String.IsNullOrEmpty(postTitle))
-                    Console.WriteLine("\nInvalid Input");
-                else
+            try {
+                using (var db = new BlogContext())
                 {
-                    System.Console.WriteLine("Enter your post content");
-                    var postContent = Console.ReadLine();
+                    var blog = db.Blogs.Where(x => x.BlogId == selection).FirstOrDefault();
 
-                    var post = new Post();
-                    post.Title = postTitle;
-                    post.Content = postContent;
-                    post.BlogId = blog.BlogId;
+                    System.Console.WriteLine("Enter your post title");
+                    var postTitle = Console.ReadLine();
+                    if (String.IsNullOrEmpty(postTitle))
+                        Console.WriteLine("\nInvalid Input");
+                    else
+                    {
+                        System.Console.WriteLine("Enter your post content");
+                        var postContent = Console.ReadLine();
+
+                        var post = new Post();
+                        post.Title = postTitle;
+                        post.Content = postContent;
+                        post.BlogId = blog.BlogId;
 
 
-                    db.Posts.Add(post);
-                    db.SaveChanges();
+                        db.Posts.Add(post);
+                        db.SaveChanges();
+                    }
+
                 }
-                
             }
+            catch (NullReferenceException)
+            {
+                Console.WriteLine($"{selection} is not a valid blog\n");
+            }
+            
         }
     }
 }
